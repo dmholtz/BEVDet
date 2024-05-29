@@ -28,8 +28,8 @@ _base_ = ['../_base_/datasets/nus-3d.py', '../_base_/default_runtime.py']
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 # For nuScenes we usually do 10-class detection
 class_names = [
-    'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
-    'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
+    'car', 'truck', 'ambulance', 'bus',
+    'bicycle', 'motorcycle', 'pedestrian',
 ]
 
 data_config = {
@@ -101,12 +101,8 @@ model = dict(
         type='CenterHead',
         in_channels=256,
         tasks=[
-            dict(num_class=10, class_names=['car', 'truck',
-                                            'construction_vehicle',
-                                            'bus', 'trailer',
-                                            'barrier',
-                                            'motorcycle', 'bicycle',
-                                            'pedestrian', 'traffic_cone']),
+            dict(num_class=7, class_names=
+                 ['car', 'truck', 'ambulance', 'bus', 'bicycle', 'motorcycle', 'pedestrian',]),
         ],
         common_heads=dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
@@ -230,14 +226,14 @@ share_data_config = dict(
 
 test_data_config = dict(
     pipeline=test_pipeline,
-    ann_file=data_root + 'bevdetv3-nuscenes_infos_val.pkl')
+    ann_file=data_root + 'bevdet_infos_val.pkl')
 
 data = dict(
     samples_per_gpu=8,
     workers_per_gpu=4,
     train=dict(
         data_root=data_root,
-        ann_file=data_root + 'bevdetv3-nuscenes_infos_train.pkl',
+        ann_file=data_root + 'bevdet_infos_train.pkl',
         pipeline=train_pipeline,
         classes=class_names,
         test_mode=False,
@@ -262,6 +258,24 @@ lr_config = dict(
     step=[24,])
 runner = dict(type='EpochBasedRunner', max_epochs=24)
 
+evaluation = dict(interval=8, pipeline=test_pipeline)
+
+checkpoint_config = dict(interval=24)
+
+log_config = dict(
+    interval=50,
+    hooks=[
+        dict(type='TextLoggerHook'),
+        dict(type='MMDetWandbHook',
+             init_kwargs=dict(),
+             interval=50,
+             log_checkpoint=True,
+             log_checkpoint_metadata=False,
+             num_eval_images=0,
+        ),
+    ]
+)
+
 custom_hooks = [
     dict(
         type='MEGVIIEMAHook',
@@ -269,5 +283,3 @@ custom_hooks = [
         priority='NORMAL',
     ),
 ]
-
-# fp16 = dict(loss_scale='dynamic')
