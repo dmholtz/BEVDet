@@ -7,7 +7,6 @@ from nuscenes.utils.data_classes import Box
 from pyquaternion import Quaternion
 
 from tools.data_converter import nuscenes_converter as nuscenes_converter
-from tools.data_converter.create_gt_database import create_groundtruth_database
 
 
 map_name_from_general_to_detection = {
@@ -26,8 +25,8 @@ map_name_from_general_to_detection = {
     'vehicle.bus.rigid': 'bus',
     'vehicle.truck': 'truck',
     'vehicle.construction': 'construction_vehicle',
-    'vehicle.emergency.ambulance': 'ignore',
-    'vehicle.emergency.police': 'ignore',
+    'vehicle.emergency.ambulance': 'ambulance',
+    'vehicle.emergency.police': 'car',
     'vehicle.trailer': 'trailer',
     'movable_object.barrier': 'barrier',
     'movable_object.trafficcone': 'traffic_cone',
@@ -35,10 +34,7 @@ map_name_from_general_to_detection = {
     'movable_object.debris': 'ignore',
     'static_object.bicycle_rack': 'ignore',
 }
-classes = [
-    'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
-    'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone'
-]
+classes = ['car', 'truck', 'ambulance', 'bus', 'bicycle', 'motorcycle', 'pedestrian']
 
 
 def get_gt(info):
@@ -135,11 +131,10 @@ def add_ann_adj_info(extra_tag):
 
 
 if __name__ == '__main__':
-    dataset = 'nuscenes'
     version = 'v1.0-trainval'
     # version = 'v1.0-test'
     root_path = './data/nuscenes'
-    extra_tag = 'bevdetv3-nuscenes'
+    extra_tag = 'bevdet'
     nuscenes_data_prep(
         root_path=root_path,
         info_prefix=extra_tag,
@@ -148,8 +143,3 @@ if __name__ == '__main__':
 
     # print('add_ann_infos')
     add_ann_adj_info(extra_tag)
-
-    create_groundtruth_database('NuScenesDataset',
-                                root_path,
-                                extra_tag,
-                                f'{root_path}/{extra_tag}_infos_train.pkl')
